@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from groq import Groq
 from django.conf import settings
 import json
 from datetime import datetime
@@ -6,12 +6,11 @@ from datetime import datetime
 
 class AIService:
     def __init__(self):
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        self.client = Groq(api_key=settings.GROQ_API_KEY)
 
     def generar_denuncia(self, nombre_victima: str, clasificacion: str) -> dict:
         """
-        Genera una denuncia detallada usando Google Gemini AI
+        Genera una denuncia detallada usando Groq AI
         """
 
         prompt = f"""Eres un asistente especializado en generar denuncias corporativas realistas y detalladas.
@@ -63,8 +62,24 @@ Requisitos:
 5. NO incluyas comillas al inicio o final, ni texto explicativo, SOLO el JSON"""
 
         try:
-            response = self.model.generate_content(prompt)
-            response_text = response.text.strip()
+            response = self.client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Eres un asistente que genera únicamente respuestas en formato JSON válido, sin texto adicional."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                temperature=0.7,
+                max_tokens=2048,
+                response_format={"type": "json_object"}
+            )
+
+            response_text = response.choices[0].message.content.strip()
 
             # Limpiar posibles markdown o texto extra
             if response_text.startswith("```json"):
@@ -84,4 +99,7 @@ Requisitos:
         except json.JSONDecodeError as e:
             raise ValueError(f"Error al parsear respuesta de IA: {str(e)}")
         except Exception as e:
+            if '429' in str(e) or 'rate_limit' in str(e).lower():
+                raise ValueError(
+                    "Límite de API excedido. Por favor intenta más tarde.")
             raise ValueError(f"Error al generar denuncia: {str(e)}")
