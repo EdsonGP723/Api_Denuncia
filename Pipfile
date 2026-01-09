@@ -8,6 +8,8 @@ django = "==5.2"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 drf-yasg = "*"
+dotenv = "*"
+anthropic = "*"
 
 [dev-packages]
 
