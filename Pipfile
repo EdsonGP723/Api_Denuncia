@@ -9,7 +9,7 @@ djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 drf-yasg = "*"
 dotenv = "*"
-anthropic = "*"
+google-generativeai = "*"
 
 [dev-packages]
 

@@ -1,4 +1,4 @@
-import anthropic
+import google.generativeai as genai
 from django.conf import settings
 import json
 from datetime import datetime
@@ -6,11 +6,12 @@ from datetime import datetime
 
 class AIService:
     def __init__(self):
-        self.client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
 
     def generar_denuncia(self, nombre_victima: str, clasificacion: str) -> dict:
         """
-        Genera una denuncia detallada usando Claude AI
+        Genera una denuncia detallada usando Google Gemini AI
         """
 
         prompt = f"""Eres un asistente especializado en generar denuncias corporativas realistas y detalladas.
@@ -62,16 +63,8 @@ Requisitos:
 5. NO incluyas comillas al inicio o final, ni texto explicativo, SOLO el JSON"""
 
         try:
-            message = self.client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=1000,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
-            )
-
-            # Extraer el texto de la respuesta
-            response_text = message.content[0].text.strip()
+            response = self.model.generate_content(prompt)
+            response_text = response.text.strip()
 
             # Limpiar posibles markdown o texto extra
             if response_text.startswith("```json"):
