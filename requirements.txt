@@ -1,0 +1,6 @@
+Django==5.2
+djangorestframework==3.16.1
+djangorestframework_simplejwt==5.5.1
+dotenv==0.9.9
+drf-yasg==1.21.11
+groq==1.0.0
